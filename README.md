@@ -1,5 +1,5 @@
 # Portfolio-Website
-Hosts the source files for my website TristonBabers.com.
+This repository hosts the source code files for my website [TristonBabers.com]().
 
 ## License
 
