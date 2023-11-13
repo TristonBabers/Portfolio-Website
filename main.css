@@ -287,12 +287,12 @@ main {
 }
 
 iframe {
-    max-width: 90vw;
+    max-width: 95vw;
     max-height: auto;
 }
 
 .scaling-font {
-    font-size: min(3vw, 1.4em);
+    font-size: min(2vw, 1.4em);
 }
 
 a:hover {
