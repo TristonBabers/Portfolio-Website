@@ -46,7 +46,7 @@
     <header>
         <h1>Floating-Point Convertor</h1>
         <nav>
-            <!--Nav not finished
+            <!--Nav not finished [TODO]
             <ul>
                 <li><a href="#Summary">Summary</a></li>
                 <li><a href="#Demo Video">Demo Video</a></li>
@@ -67,31 +67,46 @@
             <-->
         </nav>
     </header>
-    <figure>
-        <picture>
-            <img id="project-banner" width="900" height="500" src="" alt="ModelSim test bench output" src="../assets/projects/floating-point-convertor/floating-point-banner.avif">
-        </picture>
-    </figure>
+    <picture>
+        <img id="project-banner" width="1000rem" height="500rem" alt="ModelSim test bench output" src="../assets/images/banner/floating-point-convertor.avif">
+    </picture>
     <section id="Summary">
         <p>Using a hardware design made with System Verilog to convert a 32-bit float-value into a decimal representation of 5+ digits.</p>
     </section>
-    <section id="Demo Video">
-        
+    <section id="Demo Images">
+        <h2>How to Use:</h2>
+        <ol>
+            <li>First, open the top_level_tb.sv file, and find lines 8 and 21:</li>
+            <img width="800rem" height="500rem" src="../assets/images/floating-point-convertor/step1.png">
+            <li>You can change the amount of DISPLAY_WIDTH, and the binary floating point number for the module to convert like so:</li>
+            <img width="800rem" height="500rem" src="../assets/images/floating-point-convertor/step2.png">
+            <li>Then build the project in ModelSim, use top_level_tb as the design.</li>
+            <img width="800rem" height="800rem" src="../assets/images/floating-point-convertor/step3.png">
+            <li>Finally, run the simulation. It will create an output file containing the converted floating point value in the desired number of digits!</li>
+            <img width="600rem" height="200rem" src="../assets/images/floating-point-convertor/step4.png">
+        </ol>
     </section>
-    <section id="RTL Diagram">
-        
+    <section id="RTL Diagram"> <!-- TODO -->
     </section>
     <section id="Design Decisions">
-        
-    </section>
-    <section id="Specifications">
-        
     </section>
     <section id="Download">
-        
+        <h2>Download:</h2>
+        <p>Get the source files on my GitHub repository at: <a href="https://github.com/TristonBabers/Floating-Point-Convertor">github.com/TristonBabers/Floating-Point-Convertor</a>.</p>
     </section>
-    <section id="Takeaways">
-        
+    <section id="Specifications">
+        <h3>Specifications:</h3>
+        <h4>ModelSim - Intel FPGA Starter Edition 10.5b (Quartus Prime 18.1)</h4>
+        <p>I used this edition of ModelSim in all of my testing. You can find it for free at <a href="https://www.intel.com/content/www/us/en/software-kit/750368/modelsim-intel-fpgas-standard-edition-software-version-18-1.html?">intel.com</a>!</p>
+    </section>
+    <section id="References">
+        <h2>References:</h2>
+        <h4>Radix Conversion Algorithm:</h4>
+        <p>(Textbook) Knuth, Donald E - Art of Computer Programming, Volume 2 Seminumerical Algorithms, Third Edition (p. 319 Method 2a)</p>
+        <h4>Double Dabble Algorithm:</h4>
+        <a href="https://www.realdigital.org/doc/6dae6583570fd816d1d675b93578203d">https://www.realdigital.org/doc/6dae6583570fd816d1d675b93578203d</a>
+        <h4>General Description:</h4>
+        <a href="https://kyledewey.github.io/comp122-fall17/lecture/week_2/floating_point_interconversions.html">https://kyledewey.github.io/comp122-fall17/lecture/week_2/floating_point_interconversions.html</a>
     </section>
 </main>
 </body>

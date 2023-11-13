@@ -225,7 +225,7 @@ template {
 }
 
 /**************[ Global Settings ]**************/
-p {
+p, li {
     font-size: 1.4em;
 }
 
