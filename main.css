@@ -292,7 +292,7 @@ iframe {
 }
 
 .scaling-font {
-    font-size: min(2vw, 1.4em);
+    font-size: min(3vw, 1.4em);
 }
 
 a:hover {
