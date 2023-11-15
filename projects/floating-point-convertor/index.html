@@ -5,12 +5,12 @@
     <title>Floating-Point Convertor</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="../assets/icons/favicon-32x32.png" sizes="32x32">
-    <link rel="icon" type="image/png" href="../assets/icons/favicon-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="../../assets/icons/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="../../assets/icons/favicon-16x16.png" sizes="16x16">
     <!-- Preload Images -->
-    <link rel="preload" as="image" href="../assets/projects/floating-point-convertor/floating-point-banner.avif">
+    <link rel="preload" as="image" href="../../assets/projects/floating-point-convertor/floating-point-banner.avif">
     <!-- Styles -->
-    <link href="../main.css" rel="stylesheet">
+    <link href="../../main.css" rel="stylesheet">
     <!-- Fonts -->
     <!-- Note to self: Actually download the font file!!! Save network requests -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,26 +18,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Lato&family=Roboto+Slab:wght@300;400;500;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
     <!-- Scripts -->
-    <script src="../night-mode.js"></script>
+    <script src="../../night-mode.js"></script>
 </head>
 <body>
     <header>
         <nav id="nav-bar">
-            <a id="logo" href="./">Triston Babers</a>
+            <a id="logo" href="../../">Triston Babers</a>
             <div>
                 <ul>
                     <li>
-                        <a href="../about/">About</a>
+                        <a href="../../resume/">Resume</a>
                     </li>
                     <li>
-                        <a href="./" class="current-link">Projects</a>
-                    </li>
-                    <li>
-                        <a href="../contact/">Contact</a>
+                        <a href="../" class="current-link">Projects</a>
                     </li>
                 </ul>
                 <button id="night-mode-button" onclick="toggleNightMode()">
-                    <img width="80" height="80" id="color-toggle" src="../assets/icons/night-mode.png" alt="Night-Mode Toggle"> <!-- Place holder image -->
+                    <img width="80" height="80" id="color-toggle" src="../../assets/icons/night-mode.png" alt="Night-Mode Toggle"> <!-- Place holder image -->
                 </button>
             </div>
         </nav>
@@ -68,7 +65,7 @@
         </nav>
     </header>
     <picture>
-        <img id="project-banner" width="1000rem" height="500rem" alt="ModelSim test bench output" src="../assets/images/banner/floating-point-convertor.avif">
+        <img id="project-banner" width="1000rem" height="500rem" alt="ModelSim test bench output" src="../../assets/images/banner/floating-point-convertor.avif">
     </picture>
     <section id="Summary">
         <p>Using a hardware design made with System Verilog to convert a 32-bit float-value into a decimal representation of 5+ digits.</p>
@@ -77,13 +74,13 @@
         <h2>How to Use:</h2>
         <ol>
             <li>First, open the top_level_tb.sv file, and find lines 8 and 21:</li>
-            <img width="800rem" height="500rem" src="../assets/images/floating-point-convertor/step1.png">
+            <img width="800rem" height="500rem" src="../../assets/images/floating-point-convertor/step1.png">
             <li>You can change the amount of DISPLAY_WIDTH, and the binary floating point number for the module to convert like so:</li>
-            <img width="800rem" height="500rem" src="../assets/images/floating-point-convertor/step2.png">
+            <img width="800rem" height="500rem" src="../../assets/images/floating-point-convertor/step2.png">
             <li>Then build the project in ModelSim, use top_level_tb as the design.</li>
-            <img width="800rem" height="800rem" src="../assets/images/floating-point-convertor/step3.png">
+            <img width="800rem" height="800rem" src="../../assets/images/floating-point-convertor/step3.png">
             <li>Finally, run the simulation. It will create an output file containing the converted floating point value in the desired number of digits!</li>
-            <img width="600rem" height="200rem" src="../assets/images/floating-point-convertor/step4.png">
+            <img width="600rem" height="200rem" src="../../assets/images/floating-point-convertor/step4.png">
         </ol>
     </section>
     <section id="RTL Diagram"> <!-- TODO -->
