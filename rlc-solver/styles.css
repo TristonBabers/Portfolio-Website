@@ -1,7 +1,7 @@
 :root {
   /* Fonts */
-  --component-dim: 50px;
-
+  --component-dim: 70px;
+  --outline-dim: 69px;
 }
 
 body, html {
@@ -51,15 +51,15 @@ body, html {
   height: 100%;
   background: repeating-linear-gradient(
     transparent,
-    transparent 49px,
-    #000 49px,
+    transparent var(--outline-dim),
+    #000 var(--outline-dim),
     #000 var(--component-dim)
   ),
   repeating-linear-gradient(
     90deg,
     transparent,
-    transparent 49px,
-    #000 49px,
+    transparent var(--outline-dim),
+    #000 var(--outline-dim),
     #000 var(--component-dim)
   );
   opacity: 0.3;
