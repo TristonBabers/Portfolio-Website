@@ -1,0 +1,77 @@
+:root {
+  /* Fonts */
+  --component-dim: 50px;
+
+}
+
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.workspace {
+  width: 100%;
+  padding: 20px;
+  background-color: #f4f4f4;
+  text-align: center;
+}
+
+.component {
+  width: var(--component-dim);
+  height: var(--component-dim);
+  display: inline-block;
+  margin: 0;
+  padding: 10px;
+  background: #ddd;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  cursor: pointer;
+  text-align: center;
+  line-height: 30px;
+}
+
+.circuit-board {
+  width: 100%;
+  height: 300px;
+  background-color: #e2e2e2;
+  border: 2px dashed #999;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--component-dim));
+  grid-template-rows: repeat(6, var(--component-dim));
+}
+
+.overlay {
+  display: none; /* Initially hidden */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 49px,
+    #000 49px,
+    #000 var(--component-dim)
+  ),
+  repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 49px,
+    #000 49px,
+    #000 var(--component-dim)
+  );
+  opacity: 0.3;
+  pointer-events: none; /* Allow events to pass through */
+}
+
+.projection {
+  position: absolute;
+  width: var(--component-dim);
+  height: var(--component-dim);
+  background: rgba(221, 221, 221, 0.5); /* Semi-transparent */
+  border: 1px dashed black;
+  box-sizing: border-box;
+  pointer-events: none;
+}
