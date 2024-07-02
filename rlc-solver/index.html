@@ -8,9 +8,14 @@
 </head>
 <body>
 <div class="workspace">
-    <div id="resistor" class="component" draggable="true">Resistor</div>
-    <div id="capacitor" class="component" draggable="true">Capacitor</div>
-    <div id="inductor" class="component" draggable="true">Inductor</div>
+    <img id="resistor" class="component" alt="Resistor" data-type="passive" data-east="true" data-west="true" draggable="true" src="../assets/images/rlc-solver/Resistor.png">
+    <div id="capacitor" class="component" data-type="passive" data-east="true" data-west="true" draggable="true">Capacitor</div>
+    <div id="inductor" class="component" data-type="passive" data-east="true" data-west="true" draggable="true">Inductor</div>
+    <div id="wire-straight" class="component" data-type="wire" data-east="true" data-west="true" draggable="true">Straight Wire</div>
+    <div id="wire-corner" class="component" data-type="wire" data-east="true" data-south="true" draggable="true">Corner Wire</div>
+    <div id="wire-3" class="component" data-type="wire" data-east="true" data-south="true" data-west="true" draggable="true">3-way Wire</div>
+    <div id="wire-4" class="component" data-type="wire" data-north="true" data-east="true" data-south="true" data-west="true" draggable="true">4-way Wire</div>
+    <div id="source-voltage" class="component" data-type="source" draggable="true">Voltage Source</div>
 </div>
 <div class="circuit-board" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 <script src="script.js"></script>
