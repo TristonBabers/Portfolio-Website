@@ -169,6 +169,7 @@ function updateGrid() {
       })) {
       console.log('[ERROR] component is floating'); // DEBUG
       // Circuit Error: component is floating (should highlight in red)
+      //theComponent.style.background = 255;
       // DEBUG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! [TODO]
     }
   });
