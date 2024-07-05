@@ -29,6 +29,7 @@ body, html {
   cursor: pointer;
   text-align: center;
   line-height: 30px;
+  user-select: none; /* Prevent text selection */
 }
 
 .circuit-board {
