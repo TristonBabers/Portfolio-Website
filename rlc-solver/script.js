@@ -79,21 +79,24 @@ function rotate(anEvent) {
 }
 
 function rotateConnections(aComponent) {
-  let setNorth, setEast, setSouth, setWest = false;
+  let setNorth = ""; // false
+  let setEast = ""; // false 
+  let setSouth = ""; // false
+  let setWest = ""; // false
   if (aComponent.dataset.north) {
-    aComponent.dataset.north = false;
+    aComponent.dataset.north = ""; // false
     setEast = true;
   }
   if (aComponent.dataset.east) {
-    aComponent.dataset.east = false;
+    aComponent.dataset.east = ""; // false
     setSouth = true;
   }
   if (aComponent.dataset.south) {
-    aComponent.dataset.south = false;
+    aComponent.dataset.south = ""; // false
     setWest = true;
   }
   if (aComponent.dataset.west) {
-    aComponent.dataset.west = false;
+    aComponent.dataset.west = ""; // false
     setNorth = true;
   }
   aComponent.dataset.north = setNorth;
@@ -147,7 +150,7 @@ function onEachConnection(aComponent, aCallback) {
     if (theConnectedComponent != undefined && theConnectedComponent.dataset.south) {
       aCallback(theConnectedComponent);
     } else {
-      allConnectionsMatched = false;
+      allConnectionsMatched = ""; // false
     }
   }
   if (aComponent.dataset.east) {
@@ -155,7 +158,7 @@ function onEachConnection(aComponent, aCallback) {
     if (theConnectedComponent != undefined && theConnectedComponent.dataset.west) {
       aCallback(theConnectedComponent);
     } else {
-      allConnectionsMatched = false;
+      allConnectionsMatched = ""; // false
     }
   }
   if (aComponent.dataset.south) {
@@ -163,7 +166,7 @@ function onEachConnection(aComponent, aCallback) {
     if (theConnectedComponent != undefined && theConnectedComponent.dataset.north) {
       aCallback(theConnectedComponent);
     } else {
-      allConnectionsMatched = false;
+      allConnectionsMatched = ""; // false
     }
   }
   if (aComponent.dataset.west) {
@@ -171,7 +174,7 @@ function onEachConnection(aComponent, aCallback) {
     if (theConnectedComponent != undefined && theConnectedComponent.dataset.east) {
       aCallback(theConnectedComponent);
     } else {
-      allConnectionsMatched = false;
+      allConnectionsMatched = ""; // false
     }
   }
   return allConnectionsMatched;
@@ -223,13 +226,13 @@ function updateGrid() {
         // Connect R, L, or C component to the nodes touching it
         if (theFirst) {
           theComponent.dataset.connection1 = aConnectedComponent.dataset.node;
-          theFirst = false;
+          theFirst = ""; // false
         } else {
           theComponent.dataset.connection2 = aConnectedComponent.dataset.node;
         }
       })) {
       //console.log('[ERROR] component is floating'); // DEBUG
-      theCircuitIsCorrect = false;
+      theCircuitIsCorrect = ""; // false
       theComponent.style.backgroundColor = 'rgb(255, 155, 155)'; // Circuit Error: Component is floating
     } else {
       theComponent.style.backgroundColor = ''; // Change back to CSS
@@ -237,6 +240,23 @@ function updateGrid() {
   });
   sources.forEach(theSource => {
     // Mark theSources for JSON
+    // Right now: just do the same as components
+    theFirst = true;
+    if (!onEachConnection(theSource, (aConnectedComponent) => {
+        // Connect R, L, or C component to the nodes touching it
+        if (theFirst) {
+          theSource.dataset.connection1 = aConnectedComponent.dataset.node;
+          theFirst = ""; // false
+        } else {
+          theSource.dataset.connection2 = aConnectedComponent.dataset.node;
+        }
+      })) {
+      //console.log('[ERROR] source is floating'); // DEBUG
+      theCircuitIsCorrect = ""; // false
+      theSource.style.backgroundColor = 'rgb(255, 155, 155)'; // Circuit Error: Component is floating
+    } else {
+      theSource.style.backgroundColor = ''; // Change back to CSS
+    }
   });
   if (theCircuitIsCorrect) {
     // Send JSON version of all connections to C++ and async wait the solutions!
