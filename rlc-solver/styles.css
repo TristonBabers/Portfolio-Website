@@ -23,8 +23,8 @@ body, html {
   display: inline-block;
   margin: 0;
   padding: 0;
-  background: #ddd;
-  border: 1px solid #ccc;
+  background: #e2e2e2;
+  border: 0px solid #000;
   box-sizing: border-box;
   cursor: pointer;
   text-align: center;
