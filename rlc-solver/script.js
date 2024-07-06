@@ -34,7 +34,7 @@ function discard(anEvent) {
   anEvent.preventDefault();
   hideOverlay();
   let theData = anEvent.dataTransfer.getData('componentID');
-  if (anEvent.target.className != 'circuit-board' && theData == 'clone') { // Drag & Drop Cloned Component
+  if (anEvent.target.className != 'circuit-board' && anEvent.target.className != 'component' && theData == 'clone') { // Drag & Drop Cloned Component
     let theData = anEvent.dataTransfer.getData('cloneComponentID');
     let theComponent = document.getElementById(theData);
     circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
@@ -50,17 +50,27 @@ function drop(anEvent) {
   if (theData == 'clone') { // Drag & Drop Cloned Component
     let theData = anEvent.dataTransfer.getData('cloneComponentID');
     let theComponent = document.getElementById(theData);
+    /*
+    if (anEvent.target.className == 'component') { // For drop behavior onto other components... ISSUE: stop weirdness when dropping on original objects
+      let theComponentUnderneath = circuitMap.get(`(${theCircuitX}, ${theCircuitY})`);
+      if (theComponentUnderneath != undefined) {
+        circuitMap.delete(`(${theCircuitX}, ${theCircuitY})`)
+        theComponentUnderneath.remove();
+        circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
+        circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
+        theComponent.dataset.circuit_x = theCircuitX;
+        theComponent.dataset.circuit_y = theCircuitY;
+        theComponent.style.position = 'absolute';
+        theComponent.style.left = x + 'px';
+        theComponent.style.top = y + 'px';
+      }
+    }*/
     let theBoardRect = anEvent.target.getBoundingClientRect();
     let x = Math.floor((anEvent.clientX - theBoardRect.left) / GRID_SIZE) * GRID_SIZE;
     let y = Math.floor((anEvent.clientY - theBoardRect.top) / GRID_SIZE) * GRID_SIZE;
     let theCircuitX = Math.floor(x / GRID_SIZE);
     let theCircuitY = Math.floor(y / GRID_SIZE);
     circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
-    let theComponentUnderneath = circuitMap.get(`(${theCircuitX}, ${theCircuitY})`);
-    if (theComponentUnderneath != undefined) {
-      circuitMap.delete(`(${theCircuitX}, ${theCircuitY})`)
-      theComponentUnderneath.remove();
-    }
     circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
     theComponent.dataset.circuit_x = theCircuitX;
     theComponent.dataset.circuit_y = theCircuitY;
