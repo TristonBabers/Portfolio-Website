@@ -6,7 +6,7 @@
 <title>Circuit Builder</title>
 <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body ondrop="discard(event)" ondragover="preventDefault(event)">
 <div class="workspace">
     <img id="resistor" class="component" alt="Resistor" data-type="passive" data-east="true" data-west="true" draggable="true" src="../assets/images/rlc-solver/resistor.png">
     <img id="capacitor" class="component" alt="Capacitor" data-type="passive" data-east="true" data-west="true" draggable="true" src="../assets/images/rlc-solver/capacitor.png">
@@ -17,7 +17,7 @@
     <img id="wire-4" class="component" alt="4-way Wire" data-type="wire" data-north="true" data-east="true" data-south="true" data-west="true" draggable="true" src="../assets/images/rlc-solver/4-way-wire.png">
     <img id="source-voltage" class="component" alt="Voltage Source"  data-type="source" data-north="true" data-south="true" data-type="source" draggable="true" src="../assets/images/rlc-solver/voltage-source.png">
 </div>
-<div class="circuit-board" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+<div class="circuit-board" ondrop="drop(event)" ondragover="preventDefault(event)"></div>
 <script src="script.js"></script>
 </body>
 </html>

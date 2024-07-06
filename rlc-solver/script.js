@@ -2,12 +2,13 @@
 let circuitMap = new Map();
 const GRID_SIZE = 70;
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.component').forEach(item => {
     item.addEventListener('dragstart', drag);
     item.addEventListener('dblclick', rotate);
     item.dataset.rotation = 0;
   });
+  document.addEventListener('drop', discard)
   let overlay = document.createElement('div');
   overlay.className = 'overlay';
   document.querySelector('.circuit-board').appendChild(overlay);
@@ -15,26 +16,39 @@ document.addEventListener("DOMContentLoaded", function () {
   document.addEventListener('keyup', handleKeyUp);
 });
 
-function allowDrop(anEvent) {
+function preventDefault(anEvent) {
   anEvent.preventDefault();
 }
 
 function drag(anEvent) {
-  anEvent.dataTransfer.setData("componentID", anEvent.target.id);
+  anEvent.dataTransfer.setData('componentID', anEvent.target.id);
   showOverlay();
 }
 
 function cloneDrag(anEvent) {
-  anEvent.dataTransfer.setData("componentID", "clone");
-  anEvent.dataTransfer.setData("cloneComponentID", anEvent.target.id);
+  anEvent.dataTransfer.setData('componentID', 'clone');
+  anEvent.dataTransfer.setData('cloneComponentID', anEvent.target.id);
+}
+
+function discard(anEvent) {
+  anEvent.preventDefault();
+  hideOverlay();
+  let theData = anEvent.dataTransfer.getData('componentID');
+  if (anEvent.target.className != 'circuit-board' && theData == 'clone') { // Drag & Drop Cloned Component
+    let theData = anEvent.dataTransfer.getData('cloneComponentID');
+    let theComponent = document.getElementById(theData);
+    circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
+    theComponent.remove();
+    updateGrid();
+  }
 }
 
 function drop(anEvent) {
   anEvent.preventDefault();
   hideOverlay();
-  let theData = anEvent.dataTransfer.getData("componentID");
-  if (theData == "clone") { // Drag & Drop Cloned Component
-    let theData = anEvent.dataTransfer.getData("cloneComponentID");
+  let theData = anEvent.dataTransfer.getData('componentID');
+  if (theData == 'clone') { // Drag & Drop Cloned Component
+    let theData = anEvent.dataTransfer.getData('cloneComponentID');
     let theComponent = document.getElementById(theData);
     let theBoardRect = anEvent.target.getBoundingClientRect();
     let x = Math.floor((anEvent.clientX - theBoardRect.left) / GRID_SIZE) * GRID_SIZE;
@@ -42,14 +56,19 @@ function drop(anEvent) {
     let theCircuitX = Math.floor(x / GRID_SIZE);
     let theCircuitY = Math.floor(y / GRID_SIZE);
     circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
+    let theComponentUnderneath = circuitMap.get(`(${theCircuitX}, ${theCircuitY})`);
+    if (theComponentUnderneath != undefined) {
+      circuitMap.delete(`(${theCircuitX}, ${theCircuitY})`)
+      theComponentUnderneath.remove();
+    }
     circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
     theComponent.dataset.circuit_x = theCircuitX;
     theComponent.dataset.circuit_y = theCircuitY;
-    theComponent.style.position = "absolute";
+    theComponent.style.position = 'absolute';
     theComponent.style.left = x + 'px';
     theComponent.style.top = y + 'px';
     updateGrid();
-  } else if (theData != "") { // Drag & Drop New Component
+  } else if (theData != '') { // Drag & Drop New Component
     let theComponent = document.getElementById(theData).cloneNode(true);
     theComponent.id = theData + getRandomInt(0, 2147483647); // Ensure uniqueness
     let theBoardRect = anEvent.target.getBoundingClientRect();
@@ -59,7 +78,7 @@ function drop(anEvent) {
     let theCircuitY = Math.floor(y / GRID_SIZE);
     theComponent.dataset.circuit_x = theCircuitX;
     theComponent.dataset.circuit_y = theCircuitY;
-    theComponent.style.position = "absolute";
+    theComponent.style.position = 'absolute';
     theComponent.style.left = x + 'px';
     theComponent.style.top = y + 'px';
     anEvent.target.appendChild(theComponent);
@@ -79,24 +98,24 @@ function rotate(anEvent) {
 }
 
 function rotateConnections(aComponent) {
-  let setNorth = ""; // false
-  let setEast = ""; // false 
-  let setSouth = ""; // false
-  let setWest = ""; // false
+  let setNorth = ''; // false
+  let setEast = ''; // false 
+  let setSouth = ''; // false
+  let setWest = ''; // false
   if (aComponent.dataset.north) {
-    aComponent.dataset.north = ""; // false
+    aComponent.dataset.north = ''; // false
     setEast = true;
   }
   if (aComponent.dataset.east) {
-    aComponent.dataset.east = ""; // false
+    aComponent.dataset.east = ''; // false
     setSouth = true;
   }
   if (aComponent.dataset.south) {
-    aComponent.dataset.south = ""; // false
+    aComponent.dataset.south = ''; // false
     setWest = true;
   }
   if (aComponent.dataset.west) {
-    aComponent.dataset.west = ""; // false
+    aComponent.dataset.west = ''; // false
     setNorth = true;
   }
   aComponent.dataset.north = setNorth;
@@ -150,7 +169,7 @@ function onEachConnection(aComponent, aCallback) {
     if (theConnectedComponent != undefined && theConnectedComponent.dataset.south) {
       aCallback(theConnectedComponent);
     } else {
-      allConnectionsMatched = ""; // false
+      allConnectionsMatched = ''; // false
     }
   }
   if (aComponent.dataset.east) {
@@ -158,7 +177,7 @@ function onEachConnection(aComponent, aCallback) {
     if (theConnectedComponent != undefined && theConnectedComponent.dataset.west) {
       aCallback(theConnectedComponent);
     } else {
-      allConnectionsMatched = ""; // false
+      allConnectionsMatched = ''; // false
     }
   }
   if (aComponent.dataset.south) {
@@ -166,7 +185,7 @@ function onEachConnection(aComponent, aCallback) {
     if (theConnectedComponent != undefined && theConnectedComponent.dataset.north) {
       aCallback(theConnectedComponent);
     } else {
-      allConnectionsMatched = ""; // false
+      allConnectionsMatched = ''; // false
     }
   }
   if (aComponent.dataset.west) {
@@ -174,7 +193,7 @@ function onEachConnection(aComponent, aCallback) {
     if (theConnectedComponent != undefined && theConnectedComponent.dataset.east) {
       aCallback(theConnectedComponent);
     } else {
-      allConnectionsMatched = ""; // false
+      allConnectionsMatched = ''; // false
     }
   }
   return allConnectionsMatched;
@@ -226,13 +245,13 @@ function updateGrid() {
         // Connect R, L, or C component to the nodes touching it
         if (theFirst) {
           theComponent.dataset.connection1 = aConnectedComponent.dataset.node;
-          theFirst = ""; // false
+          theFirst = ''; // false
         } else {
           theComponent.dataset.connection2 = aConnectedComponent.dataset.node;
         }
       })) {
       //console.log('[ERROR] component is floating'); // DEBUG
-      theCircuitIsCorrect = ""; // false
+      theCircuitIsCorrect = ''; // false
       theComponent.style.backgroundColor = 'rgb(255, 155, 155)'; // Circuit Error: Component is floating
     } else {
       theComponent.style.backgroundColor = ''; // Change back to CSS
@@ -246,13 +265,13 @@ function updateGrid() {
         // Connect R, L, or C component to the nodes touching it
         if (theFirst) {
           theSource.dataset.connection1 = aConnectedComponent.dataset.node;
-          theFirst = ""; // false
+          theFirst = ''; // false
         } else {
           theSource.dataset.connection2 = aConnectedComponent.dataset.node;
         }
       })) {
       //console.log('[ERROR] source is floating'); // DEBUG
-      theCircuitIsCorrect = ""; // false
+      theCircuitIsCorrect = ''; // false
       theSource.style.backgroundColor = 'rgb(255, 155, 155)'; // Circuit Error: Component is floating
     } else {
       theSource.style.backgroundColor = ''; // Change back to CSS
