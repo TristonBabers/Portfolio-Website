@@ -80,7 +80,7 @@ function drop(anEvent) {
     updateGrid();
   } else if (theData != '') { // Drag & Drop New Component
     let theComponent = document.getElementById(theData).cloneNode(true);
-    theComponent.id = theData + getRandomInt(0, 2147483647); // Ensure uniqueness
+    theComponent.id = theData + "_" + getRandomInt(0, 2147483647); // Ensure uniqueness
     let theBoardRect = anEvent.target.getBoundingClientRect();
     let x = Math.floor((anEvent.clientX - theBoardRect.left) / GRID_SIZE) * GRID_SIZE;
     let y = Math.floor((anEvent.clientY - theBoardRect.top) / GRID_SIZE) * GRID_SIZE;
@@ -169,7 +169,7 @@ function removeComponent(anEvent) {
 //####################[Circuit Logic]############################//
 let sources = [];
 let components = [];
-let nodeMap = new Map();
+let nodeSet = new Map();
 
 /* returns true/false if all components were connected */
 function onEachConnection(aComponent, aCallback) {
@@ -209,11 +209,11 @@ function onEachConnection(aComponent, aCallback) {
   return allConnectionsMatched;
 }
 
-function connectWires(aComponent, aNode) {
-  if (aComponent.dataset.type == 'wire' && !nodeMap.has(Number(aComponent.dataset.node))) {
-    aComponent.dataset.node = aNode;
+function connectWires(aComponent, aNodeName) {
+  if (aComponent.dataset.type == 'wire' && !nodeSet.has(aComponent.dataset.node)) {
+    aComponent.dataset.node = aNodeName;
     onEachConnection(aComponent, (aConnectedComponent) => {
-      connectWires(aConnectedComponent, aNode);
+      connectWires(aConnectedComponent, aNodeName);
     });
   }
 }
@@ -227,23 +227,23 @@ function getRandomInt(aMin, aMax) {
 function updateGrid() {
   sources = [];
   components = [];
-  nodeMap = new Map();
+  nodeSet = new Set();
   let theCircuitIsCorrect = true;
-  let theChar = 65; // 'A'
   for (let [theKey, theComponent] of circuitMap) {
     let theType = theComponent.dataset.type;
     if (theType == 'wire') {
-      if (nodeMap.has(Number(theComponent.dataset.node))) continue;
-      let theNode = getRandomInt(0, 2147483647);
-      nodeMap.set(theNode, String.fromCharCode(theChar++));
-      theComponent.dataset.node = theNode;
+      if (nodeSet.has(theComponent.dataset.node)) continue;
+      let theNodeName = "node_" + getRandomInt(0, 2147483647);
+      nodeSet.add(theNodeName);
+      theComponent.dataset.node = theNodeName;
       onEachConnection(theComponent, (aConnectedComponent) => {
-        connectWires(aConnectedComponent, theNode);
+        connectWires(aConnectedComponent, theNodeName);
       });
     } else if (theType == 'source') {
       sources.push(theComponent);
+      components.push(theComponent);
     } else if (theType == 'passive') { // R, L, or C
-      theComponent.dataset.node = getRandomInt(0, 2147483647);
+      theComponent.dataset.node = "node_" + getRandomInt(0, 2147483647);
       components.push(theComponent);
     } else {
       console.log('[ERROR] Unrecognized Type'); // DEBUG
@@ -257,55 +257,35 @@ function updateGrid() {
           theComponent.dataset.connection1 = aConnectedComponent.dataset.node;
           theFirst = ''; // false
         } else {
-          theComponent.dataset.connection2 = aConnectedComponent.dataset.node;
+          if (aConnectedComponent.dataset.type == 'passive') {
+            theComponent.dataset.connection2 = theComponent.dataset.node;
+          } else {
+            theComponent.dataset.connection2 = aConnectedComponent.dataset.node;
+          }
         }
       })) {
-      //console.log('[ERROR] component is floating'); // DEBUG
       theCircuitIsCorrect = ''; // false
       theComponent.style.backgroundColor = 'rgb(255, 155, 155)'; // Circuit Error: Component is floating
     } else {
-      theComponent.style.backgroundColor = ''; // Change back to CSS
-    }
-  });
-  sources.forEach(theSource => {
-    // Mark theSources for JSON
-    // Right now: just do the same as components
-    theFirst = true;
-    if (!onEachConnection(theSource, (aConnectedComponent) => {
-        // Connect R, L, or C component to the nodes touching it
-        if (theFirst) {
-          theSource.dataset.connection1 = aConnectedComponent.dataset.node;
-          theFirst = ''; // false
-        } else {
-          theSource.dataset.connection2 = aConnectedComponent.dataset.node;
-        }
-      })) {
-      //console.log('[ERROR] source is floating'); // DEBUG
-      theCircuitIsCorrect = ''; // false
-      theSource.style.backgroundColor = 'rgb(255, 155, 155)'; // Circuit Error: Component is floating
-    } else {
-      theSource.style.backgroundColor = ''; // Change back to CSS
+      theComponent.style.backgroundColor = ''; // Change back to CSS default
     }
   });
   if (theCircuitIsCorrect) {
     // Send JSON version of all connections to C++ and async wait the solutions!
     let theCircuitPayload = {Circuit: {Nodes: {}}};
 
-    function addNode(nodeName, connections) {
-      if (!theCircuitPayload.Circuit.Nodes[nodeName]) {
-        theCircuitPayload.Circuit.Nodes[nodeName] = [];
+    function addNode(aNodeName, aConnection) {
+      if (!theCircuitPayload.Circuit.Nodes[aNodeName]) {
+        theCircuitPayload.Circuit.Nodes[aNodeName] = [];
       }
-      theCircuitPayload.Circuit.Nodes[nodeName] = theCircuitPayload.Circuit.Nodes[nodeName].concat(connections);
+      theCircuitPayload.Circuit.Nodes[aNodeName].push(aConnection);
     }
+
+    components.forEach((aComponent) => {
+      addNode(aComponent.dataset.connection1, {[aComponent.id]: aComponent.dataset.connection2});
+      addNode(aComponent.dataset.connection2, {[aComponent.id]: aComponent.dataset.connection1});
+    });
     
-    // TODO: Make this based on the circuit!!!!! // DEBUG
-    // Adding VDD dynamically
-    addNode('VDD', [{R1: 'NodeA'}]);
-    addNode('VDD', [{R2: 'NodeA'}]);
-    
-    // Adding NodeA dynamically
-    addNode('NodeA', [{C1: 'GND'}]);
-    
-    //console.log(JSON.stringify(theCircuitPayload, null, 2)); // DEBUG
+    console.log(JSON.stringify(theCircuitPayload, null, 2)); // DEBUG
   }
 }
