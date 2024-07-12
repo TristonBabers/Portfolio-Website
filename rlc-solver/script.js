@@ -47,24 +47,39 @@ function drop(anEvent) {
   anEvent.preventDefault();
   hideOverlay();
   let theData = anEvent.dataTransfer.getData('componentID');
-  if (theData == 'clone') { // Drag & Drop Cloned Component
+  if (theData == '') return; // Break if a non-component is dropped
+  if (anEvent.target.className == 'component') { // For drop behavior onto existing components
+    let theComponentUnderneath = anEvent.target;
+    let theCircuitX = Math.floor(theComponentUnderneath.dataset.circuit_x);
+    let theCircuitY = Math.floor(theComponentUnderneath.dataset.circuit_y);
+    circuitMap.delete(`(${theCircuitX}, ${theCircuitY})`);
+    if (theData == 'clone') { // Drag & Drop Cloned Component
+      let theData = anEvent.dataTransfer.getData('cloneComponentID');
+      let theComponent = document.getElementById(theData);
+      circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
+      circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
+      theComponent.dataset.circuit_x = theCircuitX;
+      theComponent.dataset.circuit_y = theCircuitY;
+      theComponent.style.position = 'absolute';
+      theComponent.style.left = theComponentUnderneath.style.left;
+      theComponent.style.top = theComponentUnderneath.style.top;
+    } else { // Drag & Drop New Component
+      let theComponent = document.getElementById(theData).cloneNode(true);
+      theComponent.id = theData + "_" + getRandomInt(0, 2147483647); // Ensure uniqueness
+      theComponent.dataset.circuit_x = theCircuitX;
+      theComponent.dataset.circuit_y = theCircuitY;
+      theComponent.style.position = 'absolute';
+      theComponent.style.left = theComponentUnderneath.style.left;
+      theComponent.style.top = theComponentUnderneath.style.top;
+      anEvent.target.parentNode.appendChild(theComponent);
+      theComponent.addEventListener('dragstart', cloneDrag);
+      theComponent.addEventListener('dblclick', rotate);
+      circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
+    }
+    theComponentUnderneath.remove();
+  } else if (theData == 'clone') { // Drag & Drop Cloned Component
     let theData = anEvent.dataTransfer.getData('cloneComponentID');
     let theComponent = document.getElementById(theData);
-    /*
-    if (anEvent.target.className == 'component') { // For drop behavior onto other components... ISSUE: stop weirdness when dropping on original objects
-      let theComponentUnderneath = circuitMap.get(`(${theCircuitX}, ${theCircuitY})`);
-      if (theComponentUnderneath != undefined) {
-        circuitMap.delete(`(${theCircuitX}, ${theCircuitY})`)
-        theComponentUnderneath.remove();
-        circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
-        circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
-        theComponent.dataset.circuit_x = theCircuitX;
-        theComponent.dataset.circuit_y = theCircuitY;
-        theComponent.style.position = 'absolute';
-        theComponent.style.left = x + 'px';
-        theComponent.style.top = y + 'px';
-      }
-    }*/
     let theBoardRect = anEvent.target.getBoundingClientRect();
     let x = Math.floor((anEvent.clientX - theBoardRect.left) / GRID_SIZE) * GRID_SIZE;
     let y = Math.floor((anEvent.clientY - theBoardRect.top) / GRID_SIZE) * GRID_SIZE;
@@ -77,8 +92,7 @@ function drop(anEvent) {
     theComponent.style.position = 'absolute';
     theComponent.style.left = x + 'px';
     theComponent.style.top = y + 'px';
-    updateGrid();
-  } else if (theData != '') { // Drag & Drop New Component
+  } else { // Drag & Drop New Component
     let theComponent = document.getElementById(theData).cloneNode(true);
     theComponent.id = theData + "_" + getRandomInt(0, 2147483647); // Ensure uniqueness
     let theBoardRect = anEvent.target.getBoundingClientRect();
@@ -95,8 +109,8 @@ function drop(anEvent) {
     theComponent.addEventListener('dragstart', cloneDrag);
     theComponent.addEventListener('dblclick', rotate);
     circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
-    updateGrid();
   }
+  updateGrid();
 }
 
 function rotate(anEvent) {
@@ -245,6 +259,8 @@ function updateGrid() {
     } else if (theType == 'passive') { // R, L, or C
       theComponent.dataset.node = "node_" + getRandomInt(0, 2147483647);
       components.push(theComponent);
+    } else if (theType == 'ground') {
+      theComponent.dataset.node = "GND";
     } else {
       console.log('[ERROR] Unrecognized Type'); // DEBUG
     }
