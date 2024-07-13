@@ -7,11 +7,13 @@
 body, html {
   height: 100%;
   margin: 0;
+  overflow-x: hidden;
+  overflow-y: hidden;
   font-family: Arial, sans-serif;
 }
 
 .workspace {
-  width: 100%;
+  width: 99.5%;
   padding: 0;
   margin: 0;
   background-color: #f4f4f4;
@@ -35,7 +37,7 @@ body, html {
 }
 
 .circuit-board {
-  width: 99.5%;
+  width: 99%;
   height: 300px;
   margin: 0;
   padding: 0;

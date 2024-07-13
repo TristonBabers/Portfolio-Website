@@ -5,7 +5,7 @@ const GRID_SIZE = 70;
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.component').forEach(item => {
     item.addEventListener('dragstart', drag);
-    item.addEventListener('dblclick', rotate);
+    item.addEventListener('click', doubleClick);
     item.dataset.rotation = 0;
   });
   document.addEventListener('drop', discard)
@@ -73,7 +73,7 @@ function drop(anEvent) {
       theComponent.style.top = theComponentUnderneath.style.top;
       anEvent.target.parentNode.appendChild(theComponent);
       theComponent.addEventListener('dragstart', cloneDrag);
-      theComponent.addEventListener('dblclick', rotate);
+      theComponent.addEventListener('click', doubleClick);
       circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
     }
     theComponentUnderneath.remove();
@@ -107,10 +107,26 @@ function drop(anEvent) {
     theComponent.style.top = y + 'px';
     anEvent.target.appendChild(theComponent);
     theComponent.addEventListener('dragstart', cloneDrag);
-    theComponent.addEventListener('dblclick', rotate);
+    theComponent.addEventListener('click', doubleClick);
     circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
   }
   updateGrid();
+}
+
+let clickCount = 0;
+let clickTimer = null;
+const doubleClickThreshold = 300; // Adjust as needed
+function doubleClick(anEvent) {
+  clickCount++;
+  if (clickCount === 1) {
+      clickTimer = setTimeout(() => {
+          clickCount = 0; // Reset click count
+      }, doubleClickThreshold);
+  } else if (clickCount === 2) {
+      clearTimeout(clickTimer); // Clear the single click timer
+      clickCount = 0; // Reset click count
+      rotate(anEvent); // Double click detected
+  }
 }
 
 function rotate(anEvent) {
