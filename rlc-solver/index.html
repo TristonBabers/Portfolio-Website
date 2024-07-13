@@ -6,7 +6,7 @@
 <title>Circuit Builder</title>
 <link rel="stylesheet" href="styles.css">
 </head>
-<body ondrop="discard(event)" ondragover="preventDefault(event)">
+<body ondblclick="preventDefault(event)" ondrop="discard(event)" ondragover="preventDefault(event)">
 <div class="workspace">
     <img id="resistor" class="component" alt="Resistor" data-type="passive" data-east="true" data-west="true" draggable="true" src="../assets/images/rlc-solver/resistor.png">
     <img id="capacitor" class="component" alt="Capacitor" data-type="passive" data-east="true" data-west="true" draggable="true" src="../assets/images/rlc-solver/capacitor.png">

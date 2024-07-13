@@ -28,6 +28,7 @@ function drag(anEvent) {
 function cloneDrag(anEvent) {
   anEvent.dataTransfer.setData('componentID', 'clone');
   anEvent.dataTransfer.setData('cloneComponentID', anEvent.target.id);
+  showOverlay();
 }
 
 function discard(anEvent) {
