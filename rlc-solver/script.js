@@ -1,4 +1,4 @@
-//####################[Interface Interaction]############################//
+//]############################[Interface Interaction]############################//
 let circuitMap = new Map();
 const GRID_SIZE = 70;
 
@@ -38,7 +38,7 @@ function discard(anEvent) {
   if (anEvent.target.className != 'circuit-board' && anEvent.target.className != 'component' && theData == 'clone') { // Drag & Drop Cloned Component
     let theData = anEvent.dataTransfer.getData('cloneComponentID');
     let theComponent = document.getElementById(theData);
-    circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
+    //if (theComponent != undefined) circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
     theComponent.remove();
     updateGrid();
   }
@@ -53,10 +53,11 @@ function drop(anEvent) {
     let theComponentUnderneath = anEvent.target;
     let theCircuitX = Math.floor(theComponentUnderneath.dataset.circuit_x);
     let theCircuitY = Math.floor(theComponentUnderneath.dataset.circuit_y);
-    circuitMap.delete(`(${theCircuitX}, ${theCircuitY})`);
     if (theData == 'clone') { // Drag & Drop Cloned Component
       let theData = anEvent.dataTransfer.getData('cloneComponentID');
       let theComponent = document.getElementById(theData);
+      if (theComponentUnderneath.id == theComponent.id) return;
+      circuitMap.delete(`(${theCircuitX}, ${theCircuitY})`);
       circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
       circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
       theComponent.dataset.circuit_x = theCircuitX;
@@ -75,6 +76,7 @@ function drop(anEvent) {
       anEvent.target.parentNode.appendChild(theComponent);
       theComponent.addEventListener('dragstart', cloneDrag);
       theComponent.addEventListener('click', doubleClick);
+      circuitMap.delete(`(${theCircuitX}, ${theCircuitY})`);
       circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
     }
     theComponentUnderneath.remove();
@@ -197,7 +199,7 @@ function removeComponent(anEvent) {
   updateGrid();
 }
 
-//####################[Circuit Logic]############################//
+//]############################[Circuit Logic]]############################//
 let sources = [];
 let components = [];
 let nodeSet = new Map();
@@ -272,7 +274,6 @@ function updateGrid() {
       });
     } else if (theType == 'source') {
       sources.push(theComponent);
-      components.push(theComponent);
     } else if (theType == 'passive') { // R, L, or C
       theComponent.dataset.node = "node_" + getRandomInt(0, 2147483647);
       components.push(theComponent);
@@ -303,9 +304,33 @@ function updateGrid() {
       theComponent.style.backgroundColor = ''; // Change back to CSS default
     }
   });
+  sources.forEach(theSource => {
+    // Assuming 2 connections, will go through connections in N->E->S->W
+    // Determines positive end according to order.
+    if (Number(theSource.dataset.rotation) >= 180) {
+      theVddSide = ''; // false
+    } else {
+      theVddSide = true;
+    }
+    if (!onEachConnection(theSource, (aConnectedComponent) => {
+        // Connect Sources
+        if (theVddSide) {
+          theSource.dataset.connection1 = aConnectedComponent.dataset.node;
+          theVddSide = ''; // false
+        } else {
+          theSource.dataset.connection2 = aConnectedComponent.dataset.node;
+          theVddSide = true;
+        }
+      })) {
+      theCircuitIsCorrect = ''; // false
+      theSource.style.backgroundColor = 'rgb(255, 155, 155)'; // Circuit Error: Source is floating
+    } else {
+      theSource.style.backgroundColor = ''; // Change back to CSS default
+    }
+  });
   if (theCircuitIsCorrect) {
     // Send JSON version of all connections to C++ and async wait the solutions!
-    let theCircuitPayload = {Circuit: {Nodes: {}}};
+    let theCircuitPayload = {Circuit: {Nodes: {}, Sources: {}}};
 
     function addNode(aNodeName, aConnection) {
       if (!theCircuitPayload.Circuit.Nodes[aNodeName]) {
@@ -315,8 +340,14 @@ function updateGrid() {
     }
 
     components.forEach((aComponent) => {
-      addNode(aComponent.dataset.connection1, {[aComponent.id]: aComponent.dataset.connection2});
-      addNode(aComponent.dataset.connection2, {[aComponent.id]: aComponent.dataset.connection1});
+      if (aComponent.dataset.type != 'source') {
+        addNode(aComponent.dataset.connection1, {[aComponent.id]: aComponent.dataset.connection2});
+        addNode(aComponent.dataset.connection2, {[aComponent.id]: aComponent.dataset.connection1});
+      }
+    });
+    theCircuitPayload.Circuit.Sources  = [];
+    sources.forEach((aSource) => {
+      theCircuitPayload.Circuit.Sources.push({[aSource.id]: {["VDD"]: aSource.dataset.connection1, ["GND"]: aSource.dataset.connection2}});
     });
     
     console.log(JSON.stringify(theCircuitPayload, null, 2)); // DEBUG
