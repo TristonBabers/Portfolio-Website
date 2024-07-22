@@ -1,4 +1,4 @@
-//]############################[Interface Interaction]############################//
+//############################[Interface Interaction]############################//
 let circuitMap = new Map();
 const GRID_SIZE = 70;
 
@@ -199,7 +199,7 @@ function removeComponent(anEvent) {
   updateGrid();
 }
 
-//]############################[Circuit Logic]]############################//
+//############################[Circuit Logic]############################//
 let sources = [];
 let components = [];
 let nodeSet = new Map();
@@ -351,5 +351,29 @@ function updateGrid() {
     });
     
     console.log(JSON.stringify(theCircuitPayload, null, 2)); // DEBUG
+    sendPayload(theCircuitPayload)
   }
 }
+
+//############################[Server Interaction]############################//
+function sendPayload(aPayload) {
+  let url = 'https://www.tristonbabers.com/rlc-solver/endpoint';
+
+  fetch(url, {
+      method: 'POST',
+  })
+  .then(response => {
+      if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+      }
+      console.log(response.json());
+      return response.json();
+  })
+  .then(data => {
+          
+  })
+  .catch(error => {
+      console.error('Fetch error: ', error);
+  });
+}
+//############################[Rendering and Calculation Logic]############################//
