@@ -121,6 +121,7 @@ let clickTimer = null;
 const doubleClickThreshold = 300; // Adjust as needed
 function doubleClick(anEvent) {
   clickCount++;
+  select(document.getElementById(anEvent.target.id));
   if (clickCount === 1) {
       clickTimer = setTimeout(() => {
           clickCount = 0; // Reset click count
@@ -128,16 +129,30 @@ function doubleClick(anEvent) {
   } else if (clickCount === 2) {
       clearTimeout(clickTimer); // Clear the single click timer
       clickCount = 0; // Reset click count
-      rotate(anEvent); // Double click detected
+      rotate(document.getElementById(anEvent.target.id)); // Double click detected
   }
 }
 
-function rotate(anEvent) {
-  let theComponent = document.getElementById(anEvent.target.id);
-  rotateConnections(theComponent);
-  theComponent.style.transform = 'rotate(' + (Number(theComponent.dataset.rotation) + 90) + 'deg)';
-  theComponent.dataset.rotation = (Number(theComponent.dataset.rotation) + 90) % 360;
+function rotate(aComponent) {
+  rotateConnections(aComponent);
+  aComponent.style.transform = 'rotate(' + (Number(aComponent.dataset.rotation) + 90) + 'deg)';
+  aComponent.dataset.rotation = (Number(aComponent.dataset.rotation) + 90) % 360;
   updateGrid();
+}
+
+let selectedComponent = '';
+function select(aComponent) {
+  if (aComponent == selectedComponent) return;
+  if (selectedComponent) {
+    selectedComponent.style.border = ''
+  }
+  aComponent.style.setProperty('border', '2px dashed blue', 'important');
+  selectedComponent = aComponent;
+  renderEditor(aComponent);
+}
+
+function renderEditor() {
+
 }
 
 function rotateConnections(aComponent) {
@@ -357,23 +372,66 @@ function updateGrid() {
 
 //############################[Server Interaction]############################//
 function sendPayload(aPayload) {
-  let url = 'https://www.tristonbabers.com/rlc-solver/endpoint';
+  let url = 'https://www.tristonbabers.com/rlc-solver/endpoint.php';
 
   fetch(url, {
-      method: 'POST',
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(aPayload)
   })
   .then(response => {
       if (!response.ok) {
           throw new Error('Network response was not ok ' + response.statusText);
       }
-      console.log(response.json());
       return response.json();
   })
   .then(data => {
-          
+    const theCircuitSolution = JSON.parse(data.Circuit_Solution[0])
+    console.log('Circuit: ' + JSON.stringify(theCircuitSolution, null, 4)); // DEBUG
   })
   .catch(error => {
-      console.error('Fetch error: ', error);
+      //console.error('Fetch error: ' + error); // DEBUG
   });
 }
+
 //############################[Rendering and Calculation Logic]############################//
+/*
+const math = require('mathjs');
+
+// Function to create a dynamic evaluator for the equation using math.js
+function createEquationEvaluator(equation) {
+  // Replace placeholders with variable names (without curly braces)
+  const parsedEquation = equation.replace(/{(\w+)}/g, (_, varName) => varName);
+
+  // Compile the expression using math.js
+  const compiled = math.compile(parsedEquation);
+
+  // Return a function that evaluates the compiled expression with given variables
+  return (variables) => compiled.evaluate(variables);
+}
+
+// Example usage
+let jsonObject = {
+  "Equation": "({x1} + 4 - {y1})/2"
+};
+
+// Create the evaluator function
+const evaluator = createEquationEvaluator(jsonObject.Equation);
+
+// Variables to substitute, including a complex number
+let variables = {
+  x1: math.complex('200 + 1/4i'),
+  y1: math.complex('50 + 1/4i')
+};
+
+// Evaluate the expression with initial values
+let result = evaluator(variables);
+console.log("The result of the equation with complex x1 and y1 is:", result.toString());
+
+// Change the variables and re-evaluate quickly
+variables.x1 = math.complex('300 + 1/2i');
+variables.y1 = math.complex('100 + 1/2i');
+result = evaluator(variables);
+console.log("The result of the equation with new complex x1 and y1 is:", result.toString());*/
