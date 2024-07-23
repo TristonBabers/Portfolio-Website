@@ -14,11 +14,13 @@ switch ($_SERVER['REQUEST_METHOD']) {
             echo json_encode(['error' => 'Invalid JSON input']);
             exit();
         }
-        $safe_input = escapeshellarg($input);
-        exec('/var/www/tristonbabers.com/private_html/cgi-bin/rlc_solver \'' . $safe_input . '\'', $output, $retval);
-        if ($retval != 0) http_response_code(444); // C++ Script failed
+        //$safe_input = escapeshellarg($input); // Breaks the input unfortunately.
+        exec('/var/www/tristonbabers.com/private_html/cgi-bin/rlc_solver \'' . file_get_contents('php://input') . '\'', $output, $retval);
+        if ($retval != 0) {
+            http_response_code(400); // C++ Script failed
+            exit();
+        }
         echo json_encode(['Circuit_Solution' => $output]);
-        
         //echo json_encode(['The JSON recieved is: ' => file_get_contents('php://input')]); // DEBUG
         break;
     case 'OPTIONS':
@@ -29,4 +31,5 @@ switch ($_SERVER['REQUEST_METHOD']) {
         echo json_encode(['message' => 'Method Not Allowed']);
         break;
 }
+http_response_code(200); // C++ Script failed
 ?>
