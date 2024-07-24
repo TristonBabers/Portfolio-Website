@@ -402,10 +402,8 @@ function sendPayload(aPayload) {
 
 
 //############################[Rendering and Calculation Logic]############################//
-/*
-const math = require('mathjs');
-
 // Function to create a dynamic evaluator for the equation using math.js
+/*
 function createEquationEvaluator(equation) {
   // Replace placeholders with variable names (without curly braces)
   const parsedEquation = equation.replace(/{(\w+)}/g, (_, varName) => varName);
