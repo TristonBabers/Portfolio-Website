@@ -38,9 +38,11 @@ function discard(anEvent) {
   if (anEvent.target.className != 'circuit-board' && anEvent.target.className != 'component' && theData == 'clone') { // Drag & Drop Cloned Component
     let theData = anEvent.dataTransfer.getData('cloneComponentID');
     let theComponent = document.getElementById(theData);
-    //if (theComponent != undefined) circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
-    theComponent.remove();
-    updateGrid();
+    if (theComponent != null) {
+      circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
+      theComponent.remove();
+      updateGrid();
+    }
   }
 }
 
@@ -146,7 +148,7 @@ function select(aComponent) {
   if (selectedComponent) {
     selectedComponent.style.border = ''
   }
-  aComponent.style.setProperty('border', '2px dashed blue', 'important');
+  aComponent.style.setProperty('border', '2px dashed grey');
   selectedComponent = aComponent;
   renderEditor(aComponent);
 }
@@ -384,17 +386,20 @@ function sendPayload(aPayload) {
   .then(response => {
       if (!response.ok) {
           throw new Error('Network response was not ok ' + response.statusText);
+      } else {
+        return response.json();
       }
-      return response.json();
   })
   .then(data => {
     const theCircuitSolution = JSON.parse(data.Circuit_Solution[0])
+    if (theCircuitSolution)
     console.log('Circuit: ' + JSON.stringify(theCircuitSolution, null, 4)); // DEBUG
   })
-  .catch(error => {
-      //console.error('Fetch error: ' + error); // DEBUG
+  .catch(e => {
+    
   });
 }
+
 
 //############################[Rendering and Calculation Logic]############################//
 /*

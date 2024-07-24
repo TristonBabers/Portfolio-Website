@@ -17,7 +17,8 @@ switch ($_SERVER['REQUEST_METHOD']) {
         //$safe_input = escapeshellarg($input); // Breaks the input unfortunately.
         exec('/var/www/tristonbabers.com/private_html/cgi-bin/rlc_solver \'' . file_get_contents('php://input') . '\'', $output, $retval);
         if ($retval != 0) {
-            http_response_code(400); // C++ Script failed
+            http_response_code(200); // C++ Script failed
+            echo json_encode(['Circuit_Solution' => 'Bad Input']);
             exit();
         }
         echo json_encode(['Circuit_Solution' => $output]);
