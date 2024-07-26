@@ -216,6 +216,8 @@ function removeComponent(anEvent) {
   updateGrid();
 }
 
+func
+
 //############################[Circuit Logic]############################//
 let sources = [];
 let components = [];
@@ -297,7 +299,7 @@ function updateGrid() {
     } else if (theType == 'ground') {
       theComponent.dataset.node = "GND";
     } else {
-      console.log('[ERROR] Unrecognized Type'); // DEBUG
+      //console.log('[ERROR] Unrecognized Type'); // DEBUG
     }
   }
   components.forEach(theComponent => {
