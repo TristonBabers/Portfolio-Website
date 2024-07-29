@@ -1,17 +1,93 @@
+//############################[Circuit Component]############################//
+class CircuitComponent extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    const circuitComponentContainer = document.createElement('div');
+    circuitComponentContainer.setAttribute('class', 'circuit-component-container');
+    this.img = document.createElement('img');
+    this.img.setAttribute('class', 'background-image');
+    this.img.src = this.getAttribute('src');
+    this.img.alt = this.getAttribute('alt');
+    circuitComponentContainer.appendChild(this.img);
+    this.shadowRoot.appendChild(circuitComponentContainer);
+    this.overlayText = document.createElement('div');
+    circuitComponentContainer.appendChild(this.overlayText);
+    // Component Styles
+    const style = document.createElement('style');
+    style.textContent = `
+      .circuit-component-container {
+        position: absolute;
+      }
+      .background-image {
+        width: 70px;
+        height: 70px;
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+        background: #e2e2e2;
+        border: 0;
+        box-sizing: border-box;
+        cursor: pointer;
+        text-align: center;
+        line-height: 30px;
+        /*touch-action: none; Prevent selection */
+        -webkit-touch-callout: none;
+      }
+      .overlay-text {
+        position: absolute;
+        top: 10%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: black;
+        font-size: 1.15em;
+        text-align: center;
+        padding: 10px;
+        border-radius: 5px;
+      }
+    `;
+    this.shadowRoot.appendChild(style);
+  }
+
+  setText(aText) {
+    if (aText) {
+      this.overlayText.setAttribute('class', 'overlay-text');
+      this.overlayText.textContent = aText + this.dataset.symbol; // Set overlay text from attribute
+    } else {
+      this.overlayText.setAttribute('class', '');
+      this.overlayText.textContent = '';
+    }
+  }
+
+  showError(anError) {
+    if (!anError) {
+      this.img.style.backgroundColor = '';
+    } else {
+      this.img.style.backgroundColor = 'rgb(255, 155, 155)';
+    }
+  }
+
+  select() {
+    this.img.style.border = '2px dashed grey';
+  }
+
+  deselect() {
+    this.img.style.border = '';
+  }
+}
+customElements.define('circuit-component', CircuitComponent);
+
 //############################[Interface Interaction]############################//
 let circuitMap = new Map();
 const GRID_SIZE = 70;
 
 document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.component').forEach(item => {
-    item.addEventListener('dragstart', drag);
+  document.querySelectorAll('circuit-component').forEach(item => {
+    item.addEventListener('dragstart', (event) => drag(event, false));
     item.addEventListener('click', doubleClick);
     item.dataset.rotation = 0;
   });
   document.addEventListener('drop', discard)
-  let overlay = document.createElement('div');
-  overlay.className = 'overlay';
-  document.querySelector('.circuit-board').appendChild(overlay);
   document.addEventListener('keydown', handleKeyDown);
   document.addEventListener('keyup', handleKeyUp);
 });
@@ -20,25 +96,21 @@ function preventDefault(anEvent) {
   anEvent.preventDefault();
 }
 
-function drag(anEvent) {
+function drag(anEvent, isClone) {
   anEvent.dataTransfer.setData('componentID', anEvent.target.id);
-  showOverlay();
-}
-
-function cloneDrag(anEvent) {
-  anEvent.dataTransfer.setData('componentID', 'clone');
-  anEvent.dataTransfer.setData('cloneComponentID', anEvent.target.id);
+  if (isClone) {
+    anEvent.dataTransfer.setData('isClone', 'true');
+  }
   showOverlay();
 }
 
 function discard(anEvent) {
   anEvent.preventDefault();
   hideOverlay();
-  let theData = anEvent.dataTransfer.getData('componentID');
-  if (anEvent.target.className != 'circuit-board' && anEvent.target.className != 'component' && theData == 'clone') { // Drag & Drop Cloned Component
-    let theData = anEvent.dataTransfer.getData('cloneComponentID');
-    let theComponent = document.getElementById(theData);
-    if (theComponent != null) {
+  if (anEvent.target.className != 'circuit-board' && anEvent.target.className != 'component' && anEvent.dataTransfer.getData('isClone')) {
+    // Delete the Cloned Component
+    let theComponent = document.getElementById(anEvent.dataTransfer.getData('componentID'));
+    if (theComponent != null) { // For some reason this event fires twice
       circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
       theComponent.remove();
       updateGrid();
@@ -49,72 +121,53 @@ function discard(anEvent) {
 function drop(anEvent) {
   anEvent.preventDefault();
   hideOverlay();
-  let theData = anEvent.dataTransfer.getData('componentID');
-  if (theData == '') return; // Break if a non-component is dropped
-  if (anEvent.target.className == 'component') { // For drop behavior onto existing components
+  let theComponentId = anEvent.dataTransfer.getData('componentID');
+  if (theComponentId == '') return; // Break if a non-component is dropped
+  let theCircuitX;
+  let theCircuitY;
+  let theComponentStyleLeft;
+  let theComponentStyleTop;
+  let theCircuitBoard;
+  if (anEvent.target.classList.contains('component')) {
+    // Drop onto an existing component
+    theCircuitBoard = anEvent.target.parentNode;
     let theComponentUnderneath = anEvent.target;
-    let theCircuitX = Math.floor(theComponentUnderneath.dataset.circuit_x);
-    let theCircuitY = Math.floor(theComponentUnderneath.dataset.circuit_y);
-    if (theData == 'clone') { // Drag & Drop Cloned Component
-      let theData = anEvent.dataTransfer.getData('cloneComponentID');
-      let theComponent = document.getElementById(theData);
-      if (theComponentUnderneath.id == theComponent.id) return;
-      circuitMap.delete(`(${theCircuitX}, ${theCircuitY})`);
-      circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
-      circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
-      theComponent.dataset.circuit_x = theCircuitX;
-      theComponent.dataset.circuit_y = theCircuitY;
-      theComponent.style.position = 'absolute';
-      theComponent.style.left = theComponentUnderneath.style.left;
-      theComponent.style.top = theComponentUnderneath.style.top;
-    } else { // Drag & Drop New Component
-      let theComponent = document.getElementById(theData).cloneNode(true);
-      theComponent.id = theData + "_" + getRandomInt(0, 2147483647); // Ensure uniqueness
-      theComponent.dataset.circuit_x = theCircuitX;
-      theComponent.dataset.circuit_y = theCircuitY;
-      theComponent.style.position = 'absolute';
-      theComponent.style.left = theComponentUnderneath.style.left;
-      theComponent.style.top = theComponentUnderneath.style.top;
-      anEvent.target.parentNode.appendChild(theComponent);
-      theComponent.addEventListener('dragstart', cloneDrag);
-      theComponent.addEventListener('click', doubleClick);
-      circuitMap.delete(`(${theCircuitX}, ${theCircuitY})`);
-      circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
-    }
+    theCircuitX = theComponentUnderneath.dataset.circuit_x;
+    theCircuitY = theComponentUnderneath.dataset.circuit_y;
+    theComponentStyleLeft = theComponentUnderneath.style.left;
+    theComponentStyleTop = theComponentUnderneath.style.top;
+    circuitMap.delete(`(${theCircuitX}, ${theCircuitY})`);
     theComponentUnderneath.remove();
-  } else if (theData == 'clone') { // Drag & Drop Cloned Component
-    let theData = anEvent.dataTransfer.getData('cloneComponentID');
-    let theComponent = document.getElementById(theData);
+  } else {
+    // Drop onto circuit board
+    theCircuitBoard = anEvent.target;
     let theBoardRect = anEvent.target.getBoundingClientRect();
     let x = Math.floor((anEvent.clientX - theBoardRect.left) / GRID_SIZE) * GRID_SIZE;
     let y = Math.floor((anEvent.clientY - theBoardRect.top) / GRID_SIZE) * GRID_SIZE;
-    let theCircuitX = Math.floor(x / GRID_SIZE);
-    let theCircuitY = Math.floor(y / GRID_SIZE);
-    circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
-    circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
-    theComponent.dataset.circuit_x = theCircuitX;
-    theComponent.dataset.circuit_y = theCircuitY;
-    theComponent.style.position = 'absolute';
-    theComponent.style.left = x + 'px';
-    theComponent.style.top = y + 'px';
-  } else { // Drag & Drop New Component
-    let theComponent = document.getElementById(theData).cloneNode(true);
-    theComponent.id = theData + "_" + getRandomInt(0, 2147483647); // Ensure uniqueness
-    let theBoardRect = anEvent.target.getBoundingClientRect();
-    let x = Math.floor((anEvent.clientX - theBoardRect.left) / GRID_SIZE) * GRID_SIZE;
-    let y = Math.floor((anEvent.clientY - theBoardRect.top) / GRID_SIZE) * GRID_SIZE;
-    let theCircuitX = Math.floor(x / GRID_SIZE);
-    let theCircuitY = Math.floor(y / GRID_SIZE);
-    theComponent.dataset.circuit_x = theCircuitX;
-    theComponent.dataset.circuit_y = theCircuitY;
-    theComponent.style.position = 'absolute';
-    theComponent.style.left = x + 'px';
-    theComponent.style.top = y + 'px';
-    anEvent.target.appendChild(theComponent);
-    theComponent.addEventListener('dragstart', cloneDrag);
-    theComponent.addEventListener('click', doubleClick);
-    circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
+    theCircuitX = Math.floor(x / GRID_SIZE);
+    theCircuitY = Math.floor(y / GRID_SIZE);
+    theComponentStyleLeft = x + 'px';
+    theComponentStyleTop = y + 'px';
   }
+  let theComponent;
+  if (anEvent.dataTransfer.getData('isClone')) {
+    // Move existing component
+    theComponent = document.getElementById(theComponentId);
+  } else {
+    // Create new component
+    theComponent = document.getElementById(theComponentId).cloneNode(true);
+    theComponent.id = theComponentId + "_" + getRandomInt(0, 2147483647); // Ensure uniqueness
+    theCircuitBoard.appendChild(theComponent);
+    theComponent.addEventListener('dragstart', (event) => drag(event, true));
+    theComponent.addEventListener('click', doubleClick);
+    
+  }
+  theComponent.style.left = theComponentStyleLeft;
+  theComponent.style.top = theComponentStyleTop;
+  theComponent.style.position = 'absolute';
+  theComponent.dataset.circuit_x = theCircuitX;
+  theComponent.dataset.circuit_y = theCircuitY;
+  circuitMap.set(`(${theCircuitX}, ${theCircuitY})`, theComponent);
   updateGrid();
 }
 
@@ -146,9 +199,9 @@ let selectedComponent = '';
 function select(aComponent) {
   if (aComponent == selectedComponent) return;
   if (selectedComponent) {
-    selectedComponent.style.border = ''
+    selectedComponent.deselect();
   }
-  aComponent.style.setProperty('border', '2px dashed grey');
+  aComponent.select();
   selectedComponent = aComponent;
   renderEditor(aComponent);
 }
@@ -215,8 +268,6 @@ function removeComponent(anEvent) {
   anEvent.target.remove();
   updateGrid();
 }
-
-func
 
 //############################[Circuit Logic]############################//
 let sources = [];
@@ -305,6 +356,9 @@ function updateGrid() {
   components.forEach(theComponent => {
     theFirst = true;
     if (!onEachConnection(theComponent, (aConnectedComponent) => {
+        // Show Text
+        theComponent.setText(theComponent.dataset.impedence);
+
         // Connect R, L, or C component to the nodes touching it
         if (theFirst) {
           theComponent.dataset.connection1 = aConnectedComponent.dataset.node;
@@ -316,11 +370,11 @@ function updateGrid() {
             theComponent.dataset.connection2 = aConnectedComponent.dataset.node;
           }
         }
-      })) {
+    })) {
       theCircuitIsCorrect = ''; // false
-      theComponent.style.backgroundColor = 'rgb(255, 155, 155)'; // Circuit Error: Component is floating
+      theComponent.showError('floating'); // Circuit Error: Component is floating
     } else {
-      theComponent.style.backgroundColor = ''; // Change back to CSS default
+      theComponent.showError(''); // Change back to CSS default
     }
   });
   sources.forEach(theSource => {
@@ -340,11 +394,11 @@ function updateGrid() {
           theSource.dataset.connection2 = aConnectedComponent.dataset.node;
           theVddSide = true;
         }
-      })) {
+    })) {
       theCircuitIsCorrect = ''; // false
-      theSource.style.backgroundColor = 'rgb(255, 155, 155)'; // Circuit Error: Source is floating
+      theSource.showError('floating'); // Circuit Error: Component is floating
     } else {
-      theSource.style.backgroundColor = ''; // Change back to CSS default
+      theSource.showError(''); // Change back to CSS default
     }
   });
   if (theCircuitIsCorrect) {
@@ -398,7 +452,7 @@ function sendPayload(aPayload) {
     console.log('Circuit: ' + JSON.stringify(theCircuitSolution, null, 4)); // DEBUG
   })
   .catch(e => {
-    
+    // Do nothing on error // DEBUG
   });
 }
 

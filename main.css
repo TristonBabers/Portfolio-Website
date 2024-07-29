@@ -181,6 +181,9 @@ template {
     display: none;
 }
 
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 /**************[ Variables ]**************/
 :root {
     /* Fonts */
@@ -205,6 +208,7 @@ template {
     --nav-bar-color: #547AA5;
     --text-highlight-color: black;
     --link-text-color: #00A8E8; /* night mode heading */
+    --footer-color: #c46b55;
 
     --color-toggle-icon: url('/assets/icons/night-mode.png');
 }
@@ -220,6 +224,7 @@ template {
     --nav-bar-color: #003459;
     --text-highlight-color: #fff;
     --link-text-color: #F06543;
+    --footer-color: #004b68;
 
     --color-toggle-icon: url('/assets/icons/light-mode.png');
 }
@@ -383,6 +388,15 @@ a:hover {
 	font: inherit;
 	cursor: pointer;
 	outline: inherit;
+}
+
+/**************[ Footer ]**************/
+#footer {
+    font-size: 0.8rem;
+    text-align: center;
+    color: var(--primary-color);
+    background: linear-gradient(0deg, var(--footer-color) 10%, var(--heading-color) 100%);
+    padding: 1rem;
 }
 
 /**************[ Home Page Specific ]**************/
