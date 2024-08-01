@@ -206,10 +206,6 @@ function select(aComponent) {
   renderEditor(aComponent);
 }
 
-function renderEditor() {
-
-}
-
 function rotateConnections(aComponent) {
   let setNorth = ''; // false
   let setEast = ''; // false 
@@ -458,6 +454,11 @@ function sendPayload(aPayload) {
 
 
 //############################[Rendering and Calculation Logic]############################//
+
+function renderEditor() {
+  querySelector
+}
+
 // Function to create a dynamic evaluator for the equation using math.js
 /*
 function createEquationEvaluator(equation) {
