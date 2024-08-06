@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuit Builder</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body ondblclick="preventDefault(event)" ondrop="discard(event)" ondragover="preventDefault(event)">
+<div class="workspace">
+    <circuit-component id="resistor" class="component symbol" alt="Resistor" data-type="passive" data-impedence="1k" data-symbol="Ω" data-east="true" data-west="true" draggable="true" src="./assets/resistor.png"></circuit-component>
+    <circuit-component id="capacitor" class="component symbol" alt="Capacitor" data-type="passive" data-impedence="1u" data-symbol="F" data-east="true" data-west="true" draggable="true" src="./assets/capacitor.png"></circuit-component>
+    <circuit-component id="inductor" class="component symbol" alt="Inductor" data-type="passive" data-impedence="1u" data-symbol="H" data-east="true" data-west="true" draggable="true" src="./assets/inductor.png"></circuit-component>
+    <circuit-component id="wire-straight" class="component" alt="Straight Wire" data-type="wire" data-east="true" data-west="true" draggable="true" src="./assets/straight-wire.png"></circuit-component>
+    <circuit-component id="wire-corner" class="component" alt="Corner Wire" data-type="wire" data-west="true" data-south="true" draggable="true" src="./assets/corner-wire.png"></circuit-component>
+    <circuit-component id="wire-3" class="component" alt="3-way Wire" data-type="wire" data-east="true" data-south="true" data-west="true" draggable="true" src="./assets/3-way-wire.png"></circuit-component>
+    <circuit-component id="wire-4" class="component" alt="4-way Wire" data-type="wire" data-north="true" data-east="true" data-south="true" data-west="true" draggable="true" src="./assets/4-way-wire.png"></circuit-component>
+    <circuit-component id="source-voltage" class="component symbol" alt="Voltage Source" data-impedence="5V" data-symbol="V" data-type="source" data-north="true" data-south="true" draggable="true" src="./assets/voltage-source.png"></circuit-component>
+    <circuit-component id="ground" class="component" alt="Ground"  data-type="ground" data-north="true" draggable="true" src="./assets/ground.png"></circuit-component>
+</div>
+<div class="circuit-board" ondrop="drop(event)" ondragover="preventDefault(event)">
+    <div class="overlay"></div>
+</div>
+<div id="editor">
+    <p>Impedence:</p>
+    <textarea></textarea>
+</div>
+<script src="../node_modules/mathjs/lib/browser/math.js" type="text/javascript"></script>
+<script src="script.js"></script>
+</body>
+</html>
