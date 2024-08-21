@@ -29,8 +29,8 @@ export const Resume = () => {
           Download Resume
         </Button>
         </Row>
-        <img className="background-image-lower-left" src={colorSharp} alt="colorSharp" />
       </Container>
+      <img className="background-image-lower-left" src={colorSharp} alt="colorSharp" />
     </section>
   );
 };

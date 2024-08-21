@@ -52,7 +52,12 @@ class CircuitComponent extends HTMLElement {
   setText(aText) {
     if (aText) {
       this.overlayText.setAttribute('class', 'overlay-text');
-      this.overlayText.textContent = aText + this.dataset.symbol; // Set overlay text from attribute
+      this.overlayText.textContent = aText + this.dataset.unit + this.dataset.symbol; // Set overlay text from attribute
+      if (this.dataset.type == 'source') {
+        this.overlayText.style.transform = 'none';
+        this.overlayText.style.left = '20%';
+        this.overlayText.style.top = '16%';
+      }
     } else {
       this.overlayText.setAttribute('class', '');
       this.overlayText.textContent = '';
@@ -90,6 +95,28 @@ document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('drop', discard)
   document.addEventListener('keydown', handleKeyDown);
   document.addEventListener('keyup', handleKeyUp);
+  document.addEventListener('mouseup', (event) => { hideOverlay(); });
+  document.getElementById('pin-slider').addEventListener('click', function() {
+    // Get the current impedance value and metric symbol
+    const impedanceValue = document.getElementById('impedance').value;
+    const metricSymbol = document.getElementById('metric-symbol').value;
+  
+    // Create a new list item for the pinned slider
+    const listItem = document.createElement('li');
+    listItem.innerHTML = `
+      <label>Impedance: ${impedanceValue} ${metricSymbol}</label>
+      <input type="range" min="0" max="1000" step="0.1" value="${impedanceValue}">
+      <button class="unpinned-button">Unpin</button>
+    `;
+  
+    // Add the unpin functionality
+    listItem.querySelector('.unpinned-button').addEventListener('click', function() {
+      listItem.remove();
+    });
+  
+    // Append the new slider to the list
+    document.getElementById('slider-list').appendChild(listItem);
+  });
 });
 
 function preventDefault(anEvent) {
@@ -153,10 +180,11 @@ function drop(anEvent) {
   if (anEvent.dataTransfer.getData('isClone')) {
     // Move existing component
     theComponent = document.getElementById(theComponentId);
+    circuitMap.delete(`(${theComponent.dataset.circuit_x}, ${theComponent.dataset.circuit_y})`);
   } else {
     // Create new component
     theComponent = document.getElementById(theComponentId).cloneNode(true);
-    theComponent.id = theComponentId + "_" + getRandomInt(0, 2147483647); // Ensure uniqueness
+    theComponent.id = theComponentId + "_" + consecutiveComponentCtr++; // Ensure uniqueness
     theCircuitBoard.appendChild(theComponent);
     theComponent.addEventListener('dragstart', (event) => drag(event, true));
     theComponent.addEventListener('click', doubleClick);
@@ -317,22 +345,19 @@ function connectWires(aComponent, aNodeName) {
   }
 }
 
-function getRandomInt(aMin, aMax) {
-  aMin = Math.ceil(aMin);
-  aMax = Math.floor(aMax);
-  return Math.floor(Math.random() * (aMax - aMin + 1)) + aMin;
-}
-
+let consecutiveComponentCtr = 0;
+let consecuitveNodeCtr = 0;
+let theCircuitIsCorrect;
 function updateGrid() {
   sources = [];
   components = [];
   nodeSet = new Set();
-  let theCircuitIsCorrect = true;
+  theCircuitIsCorrect = true;
   for (let [theKey, theComponent] of circuitMap) {
     let theType = theComponent.dataset.type;
     if (theType == 'wire') {
       if (nodeSet.has(theComponent.dataset.node)) continue;
-      let theNodeName = "node_" + getRandomInt(0, 2147483647);
+      let theNodeName = "node_" + consecuitveNodeCtr++;
       nodeSet.add(theNodeName);
       theComponent.dataset.node = theNodeName;
       onEachConnection(theComponent, (aConnectedComponent) => {
@@ -341,7 +366,7 @@ function updateGrid() {
     } else if (theType == 'source') {
       sources.push(theComponent);
     } else if (theType == 'passive') { // R, L, or C
-      theComponent.dataset.node = "node_" + getRandomInt(0, 2147483647);
+      theComponent.dataset.node = "node_" + consecuitveNodeCtr++;
       components.push(theComponent);
     } else if (theType == 'ground') {
       theComponent.dataset.node = "GND";
@@ -351,10 +376,10 @@ function updateGrid() {
   }
   components.forEach(theComponent => {
     theFirst = true;
-    if (!onEachConnection(theComponent, (aConnectedComponent) => {
-        // Show Text
-        theComponent.setText(theComponent.dataset.impedence);
 
+    // Show Text
+    theComponent.setText(theComponent.dataset.impedance);
+    if (!onEachConnection(theComponent, (aConnectedComponent) => {
         // Connect R, L, or C component to the nodes touching it
         if (theFirst) {
           theComponent.dataset.connection1 = aConnectedComponent.dataset.node;
@@ -381,6 +406,9 @@ function updateGrid() {
     } else {
       theVddSide = true;
     }
+
+    // Show Text
+    theSource.setText(theSource.dataset.impedance);
     if (!onEachConnection(theSource, (aConnectedComponent) => {
         // Connect Sources
         if (theVddSide) {
@@ -420,7 +448,10 @@ function updateGrid() {
     });
     
     console.log(JSON.stringify(theCircuitPayload, null, 2)); // DEBUG
-    sendPayload(theCircuitPayload)
+    sendPayload(theCircuitPayload);
+
+    let result = math.evaluate('2 + 3i + 4 + 5i'); // Result: 6 + 8i // DEBUG
+    console.log(result); // DEBUG
   }
 }
 
@@ -455,12 +486,26 @@ function sendPayload(aPayload) {
 
 //############################[Rendering and Calculation Logic]############################//
 
-function renderEditor() {
-  querySelector
+function renderEditor(aComponent) {
+  //document.getElementById('component-name').textContent = aComponent.id.charAt(0).toUpperCase() + aComponent.id.split('_')[0].slice(1);
+  document.getElementById('component-name').textContent = aComponent.id.charAt(0).toUpperCase() + aComponent.id.slice(1);
+  document.getElementById('symbol').textContent = aComponent.dataset.symbol;
+  if (aComponent.dataset.type == 'source') {
+    document.getElementById('impedance-label').textContent = 'Voltage';
+  } else {
+    document.getElementById('impedance-label').textContent = 'Impedance';
+  }
+  if (aComponent.classList.contains('symbol')) {
+    document.getElementById('impedance').disabled = false;
+    document.getElementById('impedance').value = aComponent.dataset.impedance;
+    document.getElementById('metric-symbol').value = aComponent.dataset.unit;
+  } else {
+    document.getElementById('impedance').disabled = true;
+    document.getElementById('impedance').value = 0;
+  }
 }
 
 // Function to create a dynamic evaluator for the equation using math.js
-/*
 function createEquationEvaluator(equation) {
   // Replace placeholders with variable names (without curly braces)
   const parsedEquation = equation.replace(/{(\w+)}/g, (_, varName) => varName);
@@ -482,8 +527,8 @@ const evaluator = createEquationEvaluator(jsonObject.Equation);
 
 // Variables to substitute, including a complex number
 let variables = {
-  x1: math.complex('200 + 1/4i'),
-  y1: math.complex('50 + 1/4i')
+  x1: math.complex('200'),
+  y1: math.complex('50')
 };
 
 // Evaluate the expression with initial values
@@ -491,7 +536,7 @@ let result = evaluator(variables);
 console.log("The result of the equation with complex x1 and y1 is:", result.toString());
 
 // Change the variables and re-evaluate quickly
-variables.x1 = math.complex('300 + 1/2i');
-variables.y1 = math.complex('100 + 1/2i');
+variables.x1 = math.complex('300');
+variables.y1 = math.complex('5i');
 result = evaluator(variables);
-console.log("The result of the equation with new complex x1 and y1 is:", result.toString());*/
+console.log("The result of the equation with new complex x1 and y1 is:", result.toString());

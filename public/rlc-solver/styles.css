@@ -8,7 +8,6 @@ body, html {
   height: 100%;
   margin: 0;
   overflow-x: hidden;
-  overflow-y: hidden;
   font-family: Arial, sans-serif;
 }
 
@@ -83,4 +82,31 @@ body, html {
   border: 1px dashed black;
   box-sizing: border-box;
   pointer-events: none;
+}
+
+#pinned-sliders {
+  margin-top: 20px;
+}
+
+#pinned-sliders ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+#pinned-sliders li {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fafafa;
+}
+
+#pinned-sliders .unpinned-button {
+  margin-left: 10px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
 }

@@ -8,24 +8,61 @@
 </head>
 <body ondblclick="preventDefault(event)" ondrop="discard(event)" ondragover="preventDefault(event)">
 <div class="workspace">
-    <circuit-component id="resistor" class="component symbol" alt="Resistor" data-type="passive" data-impedence="1k" data-symbol="Ω" data-east="true" data-west="true" draggable="true" src="./assets/resistor.png"></circuit-component>
-    <circuit-component id="capacitor" class="component symbol" alt="Capacitor" data-type="passive" data-impedence="1u" data-symbol="F" data-east="true" data-west="true" draggable="true" src="./assets/capacitor.png"></circuit-component>
-    <circuit-component id="inductor" class="component symbol" alt="Inductor" data-type="passive" data-impedence="1u" data-symbol="H" data-east="true" data-west="true" draggable="true" src="./assets/inductor.png"></circuit-component>
+    <circuit-component id="resistor" class="component symbol" alt="Resistor" data-type="passive" data-impedance="1" data-unit="k" data-symbol="Ω" data-east="true" data-west="true" draggable="true" src="./assets/resistor.png"></circuit-component>
+    <circuit-component id="capacitor" class="component symbol" alt="Capacitor" data-type="passive" data-impedance="1" data-unit="µ" data-symbol="F" data-east="true" data-west="true" draggable="true" src="./assets/capacitor.png"></circuit-component>
+    <circuit-component id="inductor" class="component symbol" alt="Inductor" data-type="passive" data-impedance="1" data-unit="µ" data-symbol="H" data-east="true" data-west="true" draggable="true" src="./assets/inductor.png"></circuit-component>
     <circuit-component id="wire-straight" class="component" alt="Straight Wire" data-type="wire" data-east="true" data-west="true" draggable="true" src="./assets/straight-wire.png"></circuit-component>
     <circuit-component id="wire-corner" class="component" alt="Corner Wire" data-type="wire" data-west="true" data-south="true" draggable="true" src="./assets/corner-wire.png"></circuit-component>
     <circuit-component id="wire-3" class="component" alt="3-way Wire" data-type="wire" data-east="true" data-south="true" data-west="true" draggable="true" src="./assets/3-way-wire.png"></circuit-component>
     <circuit-component id="wire-4" class="component" alt="4-way Wire" data-type="wire" data-north="true" data-east="true" data-south="true" data-west="true" draggable="true" src="./assets/4-way-wire.png"></circuit-component>
-    <circuit-component id="source-voltage" class="component symbol" alt="Voltage Source" data-impedence="5V" data-symbol="V" data-type="source" data-north="true" data-south="true" draggable="true" src="./assets/voltage-source.png"></circuit-component>
+    <circuit-component id="voltage-source" class="component symbol" alt="Voltage Source" data-impedance="5" data-unit="" data-symbol="V" data-type="source" data-north="true" data-south="true" draggable="true" src="./assets/voltage-source.png"></circuit-component>
     <circuit-component id="ground" class="component" alt="Ground"  data-type="ground" data-north="true" draggable="true" src="./assets/ground.png"></circuit-component>
 </div>
 <div class="circuit-board" ondrop="drop(event)" ondragover="preventDefault(event)">
     <div class="overlay"></div>
 </div>
-<div id="editor">
-    <p>Impedence:</p>
-    <textarea></textarea>
-</div>
-<script src="../node_modules/mathjs/lib/browser/math.js" type="text/javascript"></script>
+<section id="editor">
+    <h2 id="component-name">N/A</h2>
+    <label id="impedance-label" for="impedance">Impedance:</label>
+    <input disabled type="number" id="impedance" min="0" name="impedance" step="any" placeholder="Enter value" />
+    <select id="metric-symbol" name="metric-symbol">
+        <option value="E">E (Exa)</option>
+        <option value="P">P (Peta)</option>
+        <option value="T">T (Tera)</option>
+        <option value="M">M (Mega)</option>
+        <option value="G">G (Giga)</option>
+        <option selected value="k">k (Kilo)</option>
+        <option value="">(none)</option>
+        <option value="m">m (Milli)</option>
+        <option value="µ">µ (Micro)</option>
+        <option value="n">n (Nano)</option>
+        <option value="p">p (Pico)</option>
+        <option value="f">f (Femto)</option>
+      </select>
+    <em id="symbol"></em>
+    <div id="slider-container">
+        <button id="pin-slider">Pin Slider</button>
+    </div>
+    <label id="voltage" for="voltage">Voltage:</label>
+    <input disabled type="number" id="voltage" min="0" name="voltage" step="any" placeholder="N/A" />
+    <details>
+        <summary>See Calculation</summary>
+        <p>Here is some additional text that accompanies the image.</p>
+    </details>
+    <label id="current" for="current">Current:</label>
+    <input disabled type="number" id="current" min="0" name="current" step="any" placeholder="N/A" />
+    <details>
+        <summary>See Calculation</summary>
+        <p>Here is some additional text that accompanies the image.</p>
+    </details>
+    <div id="pinned-sliders">
+        <h3>Pinned Sliders</h3>
+        <ul id="slider-list">
+          <!-- Pinned sliders will appear here -->
+        </ul>
+    </div>
+</section>
+<script src="math.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
