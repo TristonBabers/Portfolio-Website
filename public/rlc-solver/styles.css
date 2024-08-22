@@ -23,6 +23,7 @@ body, html {
   width: var(--component-dim);
   height: var(--component-dim);
   display: inline-block;
+  cursor: grab;
   margin: 0;
   padding: 0;
   background: #e2e2e2;

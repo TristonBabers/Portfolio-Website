@@ -7,6 +7,7 @@ class CircuitComponent extends HTMLElement {
     circuitComponentContainer.setAttribute('class', 'circuit-component-container');
     this.img = document.createElement('img');
     this.img.setAttribute('class', 'background-image');
+    this.img.setAttribute('webkit-user-drag', 'element');
     this.img.src = this.getAttribute('src');
     this.img.alt = this.getAttribute('alt');
     circuitComponentContainer.appendChild(this.img);
@@ -159,6 +160,7 @@ function drop(anEvent) {
     // Drop onto an existing component
     theCircuitBoard = anEvent.target.parentNode;
     let theComponentUnderneath = anEvent.target;
+    if (theComponentUnderneath.id == theComponentId) return; // Same Component
     theCircuitX = theComponentUnderneath.dataset.circuit_x;
     theCircuitY = theComponentUnderneath.dataset.circuit_y;
     theComponentStyleLeft = theComponentUnderneath.style.left;
@@ -347,12 +349,14 @@ function connectWires(aComponent, aNodeName) {
 
 let consecutiveComponentCtr = 0;
 let consecuitveNodeCtr = 0;
-let theCircuitIsCorrect;
+let circuitIsCorrect;
+let variables = {};
+let equationMap = new Map();
 function updateGrid() {
   sources = [];
   components = [];
   nodeSet = new Set();
-  theCircuitIsCorrect = true;
+  circuitIsCorrect = true;
   for (let [theKey, theComponent] of circuitMap) {
     let theType = theComponent.dataset.type;
     if (theType == 'wire') {
@@ -392,7 +396,7 @@ function updateGrid() {
           }
         }
     })) {
-      theCircuitIsCorrect = ''; // false
+      circuitIsCorrect = ''; // false
       theComponent.showError('floating'); // Circuit Error: Component is floating
     } else {
       theComponent.showError(''); // Change back to CSS default
@@ -419,13 +423,13 @@ function updateGrid() {
           theVddSide = true;
         }
     })) {
-      theCircuitIsCorrect = ''; // false
+      circuitIsCorrect = ''; // false
       theSource.showError('floating'); // Circuit Error: Component is floating
     } else {
       theSource.showError(''); // Change back to CSS default
     }
   });
-  if (theCircuitIsCorrect) {
+  if (circuitIsCorrect) {
     // Send JSON version of all connections to C++ and async wait the solutions!
     let theCircuitPayload = {Circuit: {Nodes: {}, Sources: {}}};
 
@@ -437,6 +441,7 @@ function updateGrid() {
     }
 
     components.forEach((aComponent) => {
+      variables[aComponent.id] = aComponent.dataset.impedance;
       if (aComponent.dataset.type != 'source') {
         addNode(aComponent.dataset.connection1, {[aComponent.id]: aComponent.dataset.connection2});
         addNode(aComponent.dataset.connection2, {[aComponent.id]: aComponent.dataset.connection1});
@@ -444,14 +449,12 @@ function updateGrid() {
     });
     theCircuitPayload.Circuit.Sources  = [];
     sources.forEach((aSource) => {
+      variables[aSource.id] = aSource.dataset.impedance;
       theCircuitPayload.Circuit.Sources.push({[aSource.id]: {["VDD"]: aSource.dataset.connection1, ["GND"]: aSource.dataset.connection2}});
     });
     
     console.log(JSON.stringify(theCircuitPayload, null, 2)); // DEBUG
     sendPayload(theCircuitPayload);
-
-    let result = math.evaluate('2 + 3i + 4 + 5i'); // Result: 6 + 8i // DEBUG
-    console.log(result); // DEBUG
   }
 }
 
@@ -475,8 +478,14 @@ function sendPayload(aPayload) {
   })
   .then(data => {
     const theCircuitSolution = JSON.parse(data.Circuit_Solution[0])
-    if (theCircuitSolution)
-    console.log('Circuit: ' + JSON.stringify(theCircuitSolution, null, 4)); // DEBUG
+    if (theCircuitSolution) {
+      console.log('Circuit: ' + JSON.stringify(theCircuitSolution, null, 4)); // DEBUG
+      for (const [theNode, theEquation] of Object.entries(theCircuitSolution.Circuit.Nodes)) {
+        let theSolvedEquation = createEquationEvaluator(theEquation);
+        equationMap.set(theNode, theSolvedEquation);
+        console.log(`Setting equationMap:[${theNode}]`); // DEBUG
+      }
+    }
   })
   .catch(e => {
     // Do nothing on error // DEBUG
@@ -484,11 +493,10 @@ function sendPayload(aPayload) {
 }
 
 
-//############################[Rendering and Calculation Logic]############################//
+//############################[Editor Rendering]############################//
 
 function renderEditor(aComponent) {
-  //document.getElementById('component-name').textContent = aComponent.id.charAt(0).toUpperCase() + aComponent.id.split('_')[0].slice(1);
-  document.getElementById('component-name').textContent = aComponent.id.charAt(0).toUpperCase() + aComponent.id.slice(1);
+  document.getElementById('component-name').textContent = aComponent.id.replace(/_/g, " ");;
   document.getElementById('symbol').textContent = aComponent.dataset.symbol;
   if (aComponent.dataset.type == 'source') {
     document.getElementById('impedance-label').textContent = 'Voltage';
@@ -503,40 +511,68 @@ function renderEditor(aComponent) {
     document.getElementById('impedance').disabled = true;
     document.getElementById('impedance').value = 0;
   }
+  if (circuitIsCorrect) {
+    updateCalculation(aComponent);
+  }
 }
+
+function updateImpedance(anImpedance, aComponent) {
+  if (aComponent) {
+    aComponent.dataset.impedance = anImpedance;
+    aComponent.setText(aComponent.dataset.impedance);
+    variables[aComponent.id] = aComponent.dataset.impedance;
+  }
+  updateCalculation(aComponent);
+}
+
+function updateUnit(aUnit, aComponent) {
+  if (aComponent) {
+    aComponent.dataset.unit = aUnit;
+    aComponent.setText(aComponent.dataset.impedance);
+  }
+  updateCalculation(aComponent);
+}
+
+function updateCalculation(aComponent) {
+  let node1 = equationMap.get(aComponent.dataset.connection1)(variables);
+  let node2 = equationMap.get(aComponent.dataset.connection2)(variables);
+  let theVoltage = Math.abs(node2 - node1);
+  document.getElementById('voltage').value = theVoltage;
+  if (theVoltage == 0) {
+    document.getElementById('current').value = '∞';
+  } else {
+    document.getElementById('current').value = theVoltage / aComponent.dataset.impedance;
+  }
+}
+
+//############################[Calculation Logic]############################//
 
 // Function to create a dynamic evaluator for the equation using math.js
-function createEquationEvaluator(equation) {
+function createEquationEvaluator(anEquation) {
   // Replace placeholders with variable names (without curly braces)
-  const parsedEquation = equation.replace(/{(\w+)}/g, (_, varName) => varName);
+  const theParsedEquation = anEquation.replace(/{(\w+)}/g, (_, varName) => varName);
 
   // Compile the expression using math.js
-  const compiled = math.compile(parsedEquation);
+  const theCompiledEquation = math.compile(theParsedEquation);
 
   // Return a function that evaluates the compiled expression with given variables
-  return (variables) => compiled.evaluate(variables);
+  return (variables) => theCompiledEquation.evaluate(variables);
 }
-
-// Example usage
-let jsonObject = {
-  "Equation": "({x1} + 4 - {y1})/2"
-};
-
-// Create the evaluator function
-const evaluator = createEquationEvaluator(jsonObject.Equation);
-
+/*
 // Variables to substitute, including a complex number
 let variables = {
-  x1: math.complex('200'),
-  y1: math.complex('50')
+  Voltage_Source_0: math.complex('5'),
+  Resistor_11: math.complex('3'),
+  Capacitor_5: math.complex('5'),
+  Resistor_2: math.complex('1')
 };
 
 // Evaluate the expression with initial values
 let result = evaluator(variables);
-console.log("The result of the equation with complex x1 and y1 is:", result.toString());
+console.log("The result of the equation with complex is:", result.toString());
 
 // Change the variables and re-evaluate quickly
-variables.x1 = math.complex('300');
-variables.y1 = math.complex('5i');
+variables.Voltage_Source_0 = math.complex('300');
 result = evaluator(variables);
-console.log("The result of the equation with new complex x1 and y1 is:", result.toString());
+console.log("The result of the equation with new complex is:", result.toString());
+*/
